@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 
 export const Home = () => {
     const dispatch = useDispatch();
+    const userData = useSelector((state) => state.auth.data);
     const { posts, tags } = useSelector((state) => state.posts);
     const isPostsLoading = posts.loading === 'loading';
     const isTagsLoading = tags.loading === 'loading';
@@ -45,7 +46,7 @@ export const Home = () => {
                                     viewsCount={post.viewsCount}
                                     commentsCount={3}
                                     tags={post.tags}
-                                    isEditable
+                                    isEditable={userData?._id === post.user._id}
                                 />
                             )
                     )}
