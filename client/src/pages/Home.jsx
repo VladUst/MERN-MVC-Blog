@@ -40,7 +40,11 @@ export const Home = () => {
                                 <Post
                                     id={post._id}
                                     title={post.title}
-                                    imageUrl={post.imageUrl}
+                                    imageUrl={
+                                        post.imageUrl
+                                            ? `http://localhost:4444${post.imageUrl}`
+                                            : ''
+                                    }
                                     user={post.user}
                                     createdAt={post.createdAt}
                                     viewsCount={post.viewsCount}

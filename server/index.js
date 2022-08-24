@@ -2,11 +2,12 @@ import express from 'express';
 import mongoose from 'mongoose';
 import multer from 'multer';
 import cors from 'cors';
-
+import dotenv from 'dotenv';
+dotenv.config({ path: './config.env' });
 import {registerValidator, loginValidator, postCreateValidator} from './validations.js';
 import {checkAuth, handleValidationErrors} from './utils/index.js';
 import {UserController, PostController} from './controllers/index.js';
-mongoose.connect('mongodb+srv://VladUst:892015687@mernblogcluster.ch5yd.mongodb.net/mernblog?retryWrites=true&w=majority').then(() => console.log("DB connection success")).catch((err) => console.error(err))
+mongoose.connect(process.env.DB_URL).then(() => console.log("DB connection success")).catch((err) => console.error(err))
 const app = express();
 
 const storage = multer.diskStorage({
@@ -41,7 +42,7 @@ app.post('/posts', checkAuth, postCreateValidator, handleValidationErrors, PostC
 app.delete('/posts/:id', checkAuth, PostController.remove);
 app.patch('/posts/:id', checkAuth, postCreateValidator, handleValidationErrors, PostController.update);
 
-app.listen(4444, (err) => {
+app.listen(process.env.BACKPORT, (err) => {
     if (err) {
         return console.log(err);
     }

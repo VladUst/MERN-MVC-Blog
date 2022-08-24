@@ -6,21 +6,24 @@ import SimpleMDE from 'react-simplemde-editor';
 
 import 'easymde/dist/easymde.min.css';
 import styles from './AddPost.module.scss';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectIsAuth } from '../../redux/slices/auth';
 import axios from '../../axios';
 import { Navigate } from 'react-router-dom';
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 
 export const AddPost = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
     const isAuth = useSelector(selectIsAuth);
     const dispatch = useDispatch();
     const [isLoading, setLoading] = useState(false);
-    const [value, setValue] = useState('');
+    const [text, setText] = useState('');
     const [title, setTitle] = useState('');
     const [tags, setTags] = useState('');
     const [imageUrl, setImageUrl] = useState('');
-
+    const isEditing = Boolean(id);
     const inputFileRef = useRef(null);
 
     const handleChangeFile = async (event) => {
@@ -39,8 +42,47 @@ export const AddPost = () => {
         setImageUrl('');
     };
 
+    const onSubmit = async () => {
+        try {
+            setLoading(true);
+            const fields = {
+                title,
+                imageUrl,
+                tags,
+                text,
+            };
+
+            const { data } = isEditing
+                ? await axios.patch(`/posts/${id}`, fields)
+                : await axios.post('/posts', fields);
+
+            const postId = isEditing ? id : data._id;
+            navigate(`/posts/${postId}`);
+        } catch (err) {
+            console.log(err);
+            alert('Ошибка создания статьи');
+        }
+    };
+
+    useEffect(() => {
+        if (id) {
+            axios
+                .get(`/posts/${id}`)
+                .then(({ data }) => {
+                    setTitle(data.title);
+                    setText(data.text);
+                    setImageUrl(data.imageUrl);
+                    setTags(data.tags.join(','));
+                })
+                .catch((err) => {
+                    console.log(err);
+                    alert('Ошибка получения статьи');
+                });
+        }
+    }, []);
+
     const onChange = useCallback((value) => {
-        setValue(value);
+        setText(value);
     }, []);
 
     const options = useMemo(
@@ -111,13 +153,13 @@ export const AddPost = () => {
             />
             <SimpleMDE
                 className={styles.editor}
-                value={value}
+                value={text}
                 onChange={onChange}
                 options={options}
             />
             <div className={styles.buttons}>
-                <Button size="large" variant="contained">
-                    Опубликовать
+                <Button onClick={onSubmit} size="large" variant="contained">
+                    {isEditing ? 'Редактировать' : 'Опубликовать'}
                 </Button>
                 <a href="/">
                     <Button size="large">Отмена</Button>
